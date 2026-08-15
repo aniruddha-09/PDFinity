@@ -34,6 +34,14 @@ export default function JobStatusCard({
   const isFailed = job?.status === "failed";
   const isProcessing = job?.status === "processing" || job?.status === "queued" || isLoading;
 
+  const formatFileSize = (bytes?: number): string => {
+    if (!bytes || bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  };
+
   return (
     <div className="w-full rounded-2xl bg-[#141414] border border-[#2a2a2a] p-6 sm:p-8 shadow-card space-y-6 rivets">
       {/* Header status bar */}
@@ -122,6 +130,57 @@ export default function JobStatusCard({
           <div className="p-5 rounded-xl bg-[#0d0d0d] border border-[#262626] text-neutral-200 text-sm leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto font-mono text-xs shadow-recessed">
             {summaryResult.summary}
           </div>
+        </div>
+      )}
+
+      {/* Compression stats if available */}
+      {isCompleted && job?.options?.stats && (
+        <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#262626] shadow-recessed space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-accent uppercase tracking-wider">
+              Compression Metrics
+            </span>
+            <span
+              className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded border ${
+                (job.options.stats.reduction_percent || 0) > 0
+                  ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                  : "bg-[#1f1f1f] text-neutral-300 border-[#333]"
+              }`}
+            >
+              {(job.options.stats.reduction_percent || 0) > 0
+                ? `-${job.options.stats.reduction_percent}% REDUCED`
+                : "OPTIMALLY COMPACT"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 pt-1 text-center font-mono">
+            <div className="p-2.5 rounded-lg bg-[#141414] border border-[#222]">
+              <span className="text-[10px] text-neutral-500 uppercase block">Original</span>
+              <span className="text-xs font-bold text-neutral-300">
+                {formatFileSize(job.options.stats.original_size)}
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-[#141414] border border-[#222]">
+              <span className="text-[10px] text-neutral-500 uppercase block">Compressed</span>
+              <span className="text-xs font-bold text-emerald-400">
+                {formatFileSize(job.options.stats.compressed_size)}
+              </span>
+            </div>
+            <div className="p-2.5 rounded-lg bg-[#141414] border border-[#222]">
+              <span className="text-[10px] text-neutral-500 uppercase block">Saved</span>
+              <span className="text-xs font-bold text-accent">
+                {(job.options.stats.reduction_percent || 0) > 0
+                  ? `${job.options.stats.reduction_percent}%`
+                  : "0%"}
+              </span>
+            </div>
+          </div>
+
+          {(job.options.stats.reduction_percent || 0) === 0 && (
+            <p className="text-[11px] text-neutral-400 font-mono text-center pt-1">
+              ✨ This document has no uncompressed images or redundant streams and is already at maximum compact efficiency.
+            </p>
+          )}
         </div>
       )}
 
