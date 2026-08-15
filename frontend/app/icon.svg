@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 44" fill="none">
+  <!-- Infinity symbol -->
+  <path
+    d="M28 22 C28 11 8 11 8 22 C8 33 28 33 40 22 C52 11 72 11 72 22 C72 33 52 33 40 22 C28 11 28 11 28 22Z"
+    stroke="#facc15"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- PDF text inside left loop -->
+  <text
+    x="20"
+    y="27"
+    text-anchor="middle"
+    fill="#facc15"
+    font-size="10"
+    font-weight="800"
+    font-family="Arial, sans-serif"
+    letter-spacing="-0.5"
+  >PDF</text>
+</svg>

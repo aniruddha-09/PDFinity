@@ -1,20 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  FileText,
   Menu,
   X,
   ChevronDown,
   Sparkles,
+  LayoutDashboard,
+  LogOut,
+  LogIn,
 } from "lucide-react";
+import { getAccessToken, clearTokens } from "@/lib/api";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!getAccessToken());
+  }, [pathname]);
+
+  const handleSignOut = () => {
+    clearTokens();
+    setIsLoggedIn(false);
+    router.push("/");
+  };
 
   const tools = [
     { name: "Merge PDF", href: "/tools/merge", desc: "Combine multiple PDFs in order" },
@@ -36,8 +51,29 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-18 py-3.5">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-floating group-hover:scale-105 transition-transform">
-              <FileText className="w-5 h-5 text-black font-bold" />
+            <div className="w-10 h-10 rounded-xl bg-[#0a0a0a] border border-[#facc15]/30 flex items-center justify-center shadow-floating group-hover:scale-105 transition-transform overflow-hidden">
+              {/* PDFinity mark: infinity with PDF inside left loop */}
+              <svg viewBox="0 0 80 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-9 h-5">
+                {/* Infinity path */}
+                <path
+                  d="M28 22 C28 11 8 11 8 22 C8 33 28 33 40 22 C52 11 72 11 72 22 C72 33 52 33 40 22 C28 11 28 11 28 22Z"
+                  stroke="#facc15"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {/* PDF text inside left loop */}
+                <text
+                  x="20"
+                  y="27"
+                  textAnchor="middle"
+                  fill="#facc15"
+                  fontSize="10"
+                  fontWeight="800"
+                  fontFamily="Arial, sans-serif"
+                  letterSpacing="-0.5"
+                >PDF</text>
+              </svg>
             </div>
             <div className="flex items-center">
               <span className="font-extrabold text-xl tracking-tight uppercase text-white">
@@ -100,6 +136,38 @@ export default function Navbar() {
               <Sparkles className="w-3.5 h-3.5 text-accent" />
               <span>AI Summarize</span>
             </Link>
+
+            {/* Auth-aware actions */}
+            {isLoggedIn ? (
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-[#262626]">
+                <Link
+                  href="/dashboard"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
+                    pathname === "/dashboard"
+                      ? "text-accent bg-[#141414] shadow-pressed"
+                      : "text-neutral-400 hover:text-white hover:bg-[#141414]"
+                  }`}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Dashboard</span>
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-neutral-400 hover:text-rose-400 hover:bg-[#141414] transition-all"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="ml-2 flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider bg-accent text-black hover:bg-accent/90 transition-all shadow-card"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -128,6 +196,38 @@ export default function Navbar() {
                 {t.name}
               </Link>
             ))}
+          </div>
+
+          {/* Mobile auth links */}
+          <div className="pt-2 border-t border-[#222] flex items-center gap-2">
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-[#1a1a1a] text-xs font-semibold uppercase tracking-wide text-neutral-300 hover:text-accent"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); handleSignOut(); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-[#1a1a1a] text-xs font-semibold uppercase tracking-wide text-neutral-400 hover:text-rose-400"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 flex items-center justify-center gap-1.5 p-2.5 rounded-lg bg-accent text-xs font-semibold uppercase tracking-wide text-black"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}

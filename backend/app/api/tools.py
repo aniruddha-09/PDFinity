@@ -85,10 +85,14 @@ def _dispatch(job: ProcessingJob, task_name: str, db: Session):
             func(job.id)
             db.refresh(job)
         except Exception as exec_err:
-            logger.error(f"Direct execution failed: {exec_err}")
-            job.status = JobStatus.failed
-            job.error_message = str(exec_err)[:500]
-            db.commit()
+            logger.error(f"Direct execution failed for job {job.id}: {exec_err}")
+            try:
+                db.refresh(job)
+                job.status = JobStatus.failed
+                job.error_message = str(exec_err)[:500]
+                db.commit()
+            except Exception:
+                pass  # DB already updated by the task itself
 
 
 @router.post("/merge", response_model=JobResponse, status_code=201)
@@ -218,3 +222,15 @@ async def tool_summarize(
     job = await _upload_and_create_job([file], JobOperation.summarize, {}, db, current_user)
     _dispatch(job, "app.tasks.pdf_tasks.summarize_pdf", db)
     return _build_job_response(job, db)
+
+
+@router.post("/ocr", response_model=JobResponse, status_code=201)
+async def tool_ocr(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user),
+):
+    job = await _upload_and_create_job([file], JobOperation.ocr, {}, db, current_user)
+    _dispatch(job, "app.tasks.pdf_tasks.ocr_pdf", db)
+    return _build_job_response(job, db)
+

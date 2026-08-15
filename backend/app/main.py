@@ -2,8 +2,9 @@
 pdfinity — FastAPI application entry point.
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.api import auth, files, jobs, tools
@@ -35,6 +36,18 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ── Global error handler — always return JSON ──────────────────────────────
+    @application.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        import logging, traceback
+        logging.getLogger("pdfinity").error(
+            f"Unhandled error on {request.method} {request.url}: {traceback.format_exc()}"
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Internal server error: {str(exc)[:300]}"},
+        )
+
     # ── Routers ───────────────────────────────────────────────────────────────
     application.include_router(auth.router)
     application.include_router(files.router)
@@ -50,3 +63,4 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+

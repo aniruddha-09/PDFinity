@@ -36,7 +36,7 @@ export default function SummarizePage() {
       setJob(completedJob);
 
       if (completedJob) {
-        const res = (completedJob as any).options?.result;
+        const res = completedJob.options?.result;
         if (res) {
           setSummaryData(res);
         }

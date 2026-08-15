@@ -47,6 +47,7 @@ def _build_job_response(job: ProcessingJob, db: Session) -> JobResponse:
         created_at=job.created_at,
         completed_at=job.completed_at,
         output_url=output_url,
+        options=job.options or {},
     )
 
 

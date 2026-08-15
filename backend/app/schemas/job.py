@@ -22,5 +22,6 @@ class JobResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime]
     output_url: Optional[str] = None
+    options: Dict[str, Any] = {}
 
     model_config = {"from_attributes": True}

@@ -25,6 +25,7 @@ export interface JobResponse {
   created_at: string;
   completed_at?: string | null;
   output_url?: string | null;
+  options?: Record<string, any>;
 }
 
 export interface AuthTokens {
