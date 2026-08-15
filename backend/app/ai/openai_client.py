@@ -12,15 +12,25 @@ logger = logging.getLogger(__name__)
 _client: openai.OpenAI | None = None
 
 
+import os
+
 def get_client() -> openai.OpenAI:
     global _client
-    if _client is None:
-        if not settings.OPENAI_API_KEY:
-            raise RuntimeError(
-                "OPENAI_API_KEY is not set. Add it to your .env file."
-            )
-        _client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+    api_key = settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY", "")
+    if not api_key:
+        # Re-check settings in case .env was modified at runtime
+        from app.core.config import get_settings
+        current_settings = get_settings()
+        api_key = current_settings.OPENAI_API_KEY or os.getenv("OPENAI_API_KEY", "")
+
+    if not api_key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is not set. Add it to your .env file."
+        )
+    if _client is None or _client.api_key != api_key:
+        _client = openai.OpenAI(api_key=api_key)
     return _client
+
 
 
 def chat_complete(
