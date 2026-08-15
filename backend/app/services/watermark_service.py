@@ -52,13 +52,25 @@ class WatermarkService:
             cx = w * pos_frac[0]
             cy = h * pos_frac[1]
 
-            # Insert the text with rotation
+            # Measure text dimensions for proper centering
+            text_len = fitz.get_text_length(text, fontname="helv", fontsize=font_size)
+            start_x = cx - text_len / 2
+            start_y = cy + (font_size * 0.35)
+
+            origin = fitz.Point(start_x, start_y)
+            center = fitz.Point(cx, cy)
+
+            # Use matrix transformation for arbitrary angle rotation (0°–360°)
+            mat = fitz.Matrix(-angle)
+            morph = (center, mat)
+
             page.insert_text(
-                fitz.Point(cx, cy),
+                origin,
                 text,
+                fontname="helv",
                 fontsize=font_size,
                 color=color,
-                rotate=angle,
+                morph=morph,
                 overlay=True,
                 fill_opacity=opacity,
             )
@@ -67,3 +79,4 @@ class WatermarkService:
         doc.save(str(output_path), garbage=4, deflate=True)
         doc.close()
         return str(output_path)
+
